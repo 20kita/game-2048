@@ -118,5 +118,5 @@ All texts live in one `TEXTS` object with `en` and `pl` versions. HTML elements 
 
 ## Author
 
-**Your Name** — IT & Business student
-[GitHub](https://github.com/your-username) · [Portfolio](https://your-portfolio-link)
+**Natalia Cieszyńska - Kita** — IT & Business student
+[GitHub](https://github.com/20-kita) · [Portfolio](https://20kita.github.io/kita-portfolio/)
