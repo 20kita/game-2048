@@ -105,18 +105,6 @@ Missions are picked from a pool by difficulty. A seeded random generator uses th
 
 All texts live in one `TEXTS` object with `en` and `pl` versions. HTML elements are marked with `data-i18n="key"`, and `t("key")` returns the text in the chosen language.
 
-## Customizing
-
-| To change… | Edit… |
-|---|---|
-| Theme emoji, colors or price | `MODES` in `game.js` |
-| Mission list | `MISSION_POOL` in `game.js` |
-| Mission rewards | `REWARDS` in `game.js` |
-| Which tiles can appear | `SPAWN_LEVELS` in `game.js` |
-| Any text or translation | `TEXTS` in `game.js` |
-| Animation speed | `160ms` in `style.css` and `SLIDE_MS` in `game.js` |
-| Colors and dark mode | variables at the top of `style.css` |
-
 ## What I learned
 
 - Separating **game state** from **rendering**, and animating changes in two phases
