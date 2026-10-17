@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#F4F0EB">
+  <title>2048</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+
+    <!-- MENU SCREEN -->
+    <section id="menu" class="screen">
+      <!-- diamond balance, top right (tap = missions) -->
+      <button class="chip diamond-chip menu-chip">💎 <span class="diamond-count">0</span></button>
+
+      <h1 class="logo">2048</h1>
+
+      <h2 data-i18n="mode">Mode</h2>
+      <!-- mode buttons are created by game.js (renderModeButtons) -->
+      <div id="menu-modes" class="options"></div>
+
+      <h2 data-i18n="board">Board</h2>
+      <div class="options">
+        <button class="option" data-size="3">3×3</button>
+        <button class="option" data-size="4">4×4</button>
+        <button class="option" data-size="5">5×5</button>
+      </div>
+
+      <p class="best-line"><span data-i18n="bestScore">Best score</span>: <span id="menu-best">0</span></p>
+
+      <button id="continue-btn" class="btn btn-big" data-i18n="continue">Continue</button>
+      <button id="start-btn" class="btn btn-big btn-main" data-i18n="newGame">New game</button>
+      <div class="menu-row">
+        <button id="menu-missions-btn" class="btn btn-big btn-plain missions-btn">🎯 <span data-i18n="missions">Missions</span></button>
+        <button id="menu-settings-btn" class="btn btn-big btn-plain">⚙️ <span data-i18n="settings">Settings</span></button>
+      </div>
+    </section>
+
+    <!-- GAME SCREEN -->
+    <section id="game" class="screen hidden">
+      <!-- top: title bar, mode and scores -->
+      <div class="game-top">
+        <header class="top">
+          <button id="menu-btn" class="btn icon-btn">☰</button>
+          <h1 class="game-title">2048</h1>
+          <!-- diamond balance (tap = missions) -->
+          <button class="chip diamond-chip header-chip">💎 <span class="diamond-count">0</span></button>
+        </header>
+
+        <div class="mode-row">
+          <p id="mode-label" class="mode-label"></p>
+        </div>
+
+        <div class="scores">
+          <div class="score"><span data-i18n="score">Score</span><b id="score">0</b></div>
+          <div class="score"><span data-i18n="best">Best</span><b id="best">0</b></div>
+        </div>
+      </div>
+
+      <!-- middle: the board -->
+      <div class="board-wrap">
+        <div id="board" class="board"></div>
+        <div id="overlay" class="overlay hidden">
+          <div id="overlay-icon" class="overlay-icon"></div>
+          <h2 id="overlay-title"></h2>
+          <p id="overlay-text"></p>
+          <div class="overlay-buttons">
+            <button id="again-btn" class="btn btn-main" data-i18n="tryAgain">Try again</button>
+            <button id="overlay-menu-btn" class="btn" data-i18n="menu">Menu</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MISSIONS SCREEN -->
+    <section id="missions" class="screen hidden">
+      <div class="screen-head">
+        <h1 class="settings-title">🎯 <span data-i18n="missions">Missions</span></h1>
+        <span class="chip">💎 <span class="diamond-count">0</span></span>
+      </div>
+
+      <div class="mission-group">
+        <div class="group-head">
+          <h2 data-i18n="daily">Daily</h2>
+          <span id="daily-reset" class="reset-time"></span>
+        </div>
+        <div id="daily-list" class="mission-list"></div>
+      </div>
+
+      <div class="mission-group">
+        <div class="group-head">
+          <h2 data-i18n="weekly">Weekly</h2>
+          <span id="weekly-reset" class="reset-time"></span>
+        </div>
+        <div id="weekly-list" class="mission-list"></div>
+      </div>
+
+      <button id="missions-back" class="btn btn-big btn-main" data-i18n="back">Back</button>
+    </section>
+
+    <!-- SETTINGS SCREEN -->
+    <section id="settings" class="screen hidden">
+      <h1 class="settings-title">⚙️ <span data-i18n="settings">Settings</span></h1>
+
+      <h2 data-i18n="appearance">Appearance</h2>
+      <div class="options two">
+        <button class="option" data-theme-choice="light">☀️<br><span data-i18n="light">Light</span></button>
+        <button class="option" data-theme-choice="dark">🌙<br><span data-i18n="dark">Dark</span></button>
+      </div>
+
+      <h2 data-i18n="language">Language</h2>
+      <div class="options two">
+        <button class="option" data-lang-choice="en">English</button>
+        <button class="option" data-lang-choice="pl">Polski</button>
+      </div>
+
+      <h2 data-i18n="sound">Sound</h2>
+      <div class="options two">
+        <button class="option" data-sound-choice="on">🔊<br><span data-i18n="on">On</span></button>
+        <button class="option" data-sound-choice="off">🔇<br><span data-i18n="off">Off</span></button>
+      </div>
+
+      <button id="settings-back" class="btn btn-big btn-main" data-i18n="back">Back</button>
+    </section>
+
+  </main>
+
+  <!-- SIDE MENU (drawer) -->
+  <div id="drawer-backdrop" class="drawer-backdrop"></div>
+  <aside id="drawer" class="drawer">
+    <h2 class="drawer-title">2048</h2>
+
+    <p class="drawer-label" data-i18n="mode">Mode</p>
+    <!-- created by game.js -->
+    <div id="drawer-modes" class="drawer-options"></div>
+
+    <p class="drawer-label" data-i18n="board">Board</p>
+    <div class="drawer-options sizes">
+      <button class="drawer-option" data-drawer-size="3">3×3</button>
+      <button class="drawer-option" data-drawer-size="4">4×4</button>
+      <button class="drawer-option" data-drawer-size="5">5×5</button>
+    </div>
+
+    <div class="drawer-bottom">
+      <button id="new-game" class="btn btn-main">🔄 <span data-i18n="newGame">New game</span></button>
+      <button id="drawer-missions" class="btn btn-plain missions-btn">🎯 <span data-i18n="missions">Missions</span></button>
+      <button id="drawer-settings" class="btn btn-plain">⚙️ <span data-i18n="settings">Settings</span></button>
+      <button id="drawer-home" class="btn">🏠 <span data-i18n="home">Home</span></button>
+    </div>
+  </aside>
+
+  <!-- POPUP (unlock a theme, not enough diamonds) -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <div id="modal-icon" class="modal-icon"></div>
+      <h2 id="modal-title"></h2>
+      <p id="modal-text"></p>
+      <div id="modal-buttons" class="modal-buttons"></div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

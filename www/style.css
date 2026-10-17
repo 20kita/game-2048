@@ -1,0 +1,405 @@
+/* ---------- Colors ----------
+   Everything uses these variables. Dark mode just gives them other values. */
+:root {
+  /* your palette */
+  --blue-slate: #546A76;
+  --cool-steel: #88A0A8;
+  --celadon: #B4CEB3;
+  --dust-grey: #DBD3C9;
+  --petal-frost: #FAD4D8;
+
+  /* light mode */
+  --page-bg: #F4F0EB;
+  --text: #546A76;          /* normal text */
+  --muted: #88A0A8;         /* small labels like "MODE" */
+  --surface: #FFFFFF;       /* option buttons */
+  --border: #DBD3C9;
+  --accent: #546A76;        /* selected options, main button, score boxes */
+  --on-accent: #FFFFFF;     /* text on --accent */
+  --board-bg: #546A76;
+  --empty-cell: rgba(255, 255, 255, 0.14);
+  --overlay-bg: rgba(244, 240, 235, 0.92);
+  --dark-text: #3B4A52;
+}
+
+/* dark mode */
+:root[data-theme="dark"] {
+  --page-bg: #1C2428;
+  --text: #D5DFE3;
+  --muted: #88A0A8;
+  --surface: #26323A;
+  --border: #34444D;
+  --accent: #6F8A94;
+  --on-accent: #FFFFFF;
+  --board-bg: #2C3A42;
+  --empty-cell: rgba(255, 255, 255, 0.06);
+  --overlay-bg: rgba(28, 36, 40, 0.92);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: system-ui, sans-serif;
+  background: var(--page-bg);
+  color: var(--text);
+  touch-action: none;
+  user-select: none;
+  overscroll-behavior: none;
+  overflow: hidden;
+  transition: background-color 250ms ease, color 250ms ease;
+}
+
+.app {
+  position: relative;             /* for the diamond chip in the corner */
+  max-width: 520px;
+  margin: 0 auto;
+  height: 100dvh;                 /* exactly the screen height */
+  display: flex;
+  flex-direction: column;
+  /* keep away from the status bar and the bottom gesture bar */
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+.hidden { display: none !important; }
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;        /* center vertically */
+  gap: 24px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  background: var(--celadon); color: var(--dark-text);
+  border: none; border-radius: 8px; padding: 12px 16px;
+  font: inherit; font-weight: bold; cursor: pointer;
+}
+.btn:active, .option:active { transform: scale(0.96); }
+.btn-big { padding: 16px; font-size: 18px; }
+.btn-main { background: var(--accent); color: var(--on-accent); }
+.btn-plain { background: var(--surface); color: var(--text); border: 2px solid var(--border); }
+
+/* ---------- Menu and settings ---------- */
+#menu, #settings, #missions { text-align: center; }
+.logo { font-size: 64px; }
+.settings-title { font-size: 36px; }
+#menu h2, #settings h2, #missions h2 {
+  font-size: 14px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); margin-top: 8px;
+}
+.options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.options.two { grid-template-columns: repeat(2, 1fr); }
+.option {
+  background: var(--surface); color: var(--text);
+  border: 2px solid var(--border); border-radius: 10px;
+  padding: 14px 8px; font: inherit; font-weight: bold; cursor: pointer;
+}
+.option.selected { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.best-line { margin-top: 8px; }
+
+/* ---------- Game screen layout ---------- */
+/* 3 rows: top part | board | empty. The 1st and 3rd rows get equal space,
+   so the board sits exactly in the middle of the screen. */
+#game {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr);   /* full width */
+  gap: 16px;
+}
+.game-top {
+  align-self: start;            /* stay at the top of the first row */
+  display: flex; flex-direction: column;
+  gap: 16px;
+}
+
+/* 3 columns: ☰ | 2048 | 💎 — the title always stays in the exact middle */
+.top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.top #menu-btn { justify-self: start; }
+.header-chip { justify-self: end; height: 48px; padding: 0 16px; font-size: 18px; border-radius: 12px; }
+.icon-btn { height: 48px; width: 64px; padding: 0; font-size: 18px; }   /* same width = title truly centered */
+.game-title { font-size: 40px; line-height: 1; }
+
+.mode-label {
+  text-align: center;
+  font-size: 14px; font-weight: bold;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.scores { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.score {
+  background: var(--accent); color: var(--on-accent);
+  border-radius: 12px; padding: 12px; text-align: center;
+  font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
+}
+.score b { display: block; font-size: 32px; letter-spacing: 0; margin-top: 2px; }
+
+/* ---------- Board: background layer ---------- */
+.board-wrap {
+  position: relative;
+  width: min(100%, calc(100dvh - 420px));   /* shrinks on short phones */
+  margin: 0 auto;
+}
+.board {
+  --gap: 10px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--size), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--size), minmax(0, 1fr));
+  gap: var(--gap); padding: var(--gap);
+  background: var(--board-bg);
+  border-radius: 12px;
+  aspect-ratio: 1;
+  transition: background-color 250ms ease;
+}
+.cell {
+  aspect-ratio: 1;
+  min-width: 0;
+  background: var(--empty-cell);
+  border-radius: 8px;
+}
+
+/* ---------- Board: tile layer ---------- */
+.tiles { position: absolute; inset: var(--gap); }
+
+.tile {
+  position: absolute; top: 0; left: 0;
+  width: calc((100% - (var(--size) - 1) * var(--gap)) / var(--size));
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(14px, calc(32vw / var(--size)), 40px);
+  font-weight: bold;
+  background: var(--dust-grey);   /* real colors are set from game.js */
+  color: var(--dark-text);
+  z-index: 1;
+
+  transform: translate(
+    calc(var(--c) * (100% + var(--gap))),
+    calc(var(--r) * (100% + var(--gap)))
+  );
+  /* slide: fast start, soft stop. Colors blend when a tile changes value */
+  transition:
+    transform 160ms cubic-bezier(0.25, 0.8, 0.35, 1),
+    background-color 200ms ease,
+    color 200ms ease;
+  will-change: transform;
+}
+
+/* Emoji modes: bigger symbols, no fake bold */
+.board:not(.classic) .tile {
+  font-weight: normal;
+  font-synthesis: none;
+  font-size: clamp(18px, calc(40vw / var(--size)), 48px);
+}
+
+/* Classic mode: longer numbers get a smaller font */
+.board.classic .tile[data-len="4"] { font-size: clamp(12px, calc(24vw / var(--size)), 30px); }
+.board.classic .tile[data-len="5"] { font-size: clamp(10px, calc(19vw / var(--size)), 24px); }
+.board.classic .tile[data-len="6"] { font-size: clamp(9px,  calc(15vw / var(--size)), 19px); }
+
+/* New tile "dissolves" in: only the transparency changes, no movement or growing */
+.tile.new { animation: dissolve 260ms ease-out; }
+@keyframes dissolve {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Merge: the moving tile slides straight UNDER its partner and is hidden behind it.
+   (No fading or shrinking: those made see-through "shadows" next to the tiles.) */
+.tile.absorbing { z-index: 0; }
+
+/* ---------- Game over message ---------- */
+.overlay {
+  position: absolute; inset: 0;
+  z-index: 10;
+  background: var(--overlay-bg);
+  border-radius: 12px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; padding: 24px; text-align: center;
+  animation: fade-in 0.3s ease;
+}
+.overlay-icon { font-size: 64px; }
+.overlay h2 { font-size: 32px; }
+.overlay.record h2 { color: #D9677A; }   /* new best score: rose title */
+.overlay-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+@keyframes fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- Side menu (drawer) ---------- */
+.drawer-backdrop {
+  position: fixed; inset: 0; z-index: 20;
+  background: rgba(20, 28, 32, 0.45);
+  opacity: 0; pointer-events: none;      /* invisible and untouchable when closed */
+  transition: opacity 250ms ease;
+}
+.drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 21;
+  overflow-y: auto; touch-action: pan-y;   /* scrolls on short phones */
+  width: min(80vw, 320px);
+  background: var(--page-bg);
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 12px;
+  transform: translateX(-100%);          /* hidden off the left edge */
+  transition: transform 280ms cubic-bezier(0.25, 0.8, 0.35, 1);
+}
+.drawer.open {
+  transform: translateX(0);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.drawer-title { font-size: 36px; margin-bottom: 8px; }
+.drawer-label {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--muted); margin-top: 8px;
+}
+.drawer-options { display: flex; flex-direction: column; gap: 8px; }
+.drawer-options.sizes { flex-direction: row; }
+.drawer-option {
+  background: var(--surface); color: var(--text);
+  border: 2px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; font: inherit; font-weight: bold;
+  text-align: left; cursor: pointer;
+}
+.drawer-options.sizes .drawer-option { flex: 1; text-align: center; }
+.drawer-option.selected { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.drawer-option:active { transform: scale(0.97); }
+.drawer-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }   /* pushed to the bottom */
+
+/* ---------- Screen animations ---------- */
+#menu, #settings, #missions { animation: screen-from-left 300ms ease-out; }
+#game { animation: screen-from-right 300ms ease-out; }
+.board-wrap.swap { animation: board-swap 250ms ease-out; }
+
+@keyframes screen-from-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes screen-from-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes board-swap {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Diamonds chip ---------- */
+.chip {
+  position: relative;
+  background: var(--surface); color: var(--text);
+  border: 2px solid var(--border); border-radius: 999px;
+  padding: 6px 12px; font: inherit; font-size: 15px; font-weight: bold;
+  cursor: pointer; white-space: nowrap;
+}
+.chip:active { transform: scale(0.95); }
+.menu-chip { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px; }
+
+/* chip "jumps" when diamonds are added */
+.chip.bump { animation: bump 400ms ease-out; }
+@keyframes bump {
+  30% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* small rose dot = a mission reward is waiting */
+.has-dot::after {
+  content: ""; position: absolute; top: -3px; right: -3px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #D9677A; border: 2px solid var(--page-bg);
+}
+
+/* game screen: mode in the middle, diamonds on the right */
+.mode-row { position: relative; display: flex; justify-content: center; align-items: center; min-height: 34px; }
+
+/* menu: Missions + Settings side by side */
+.menu-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.menu-row .btn { position: relative; }
+.drawer-bottom .btn { position: relative; padding: 14px; font-size: 16px; }
+
+/* locked themes */
+.option small, .drawer-option small { display: block; font-size: 12px; margin-top: 2px; opacity: 0.8; }
+.drawer-option small { display: inline; margin-left: 6px; }
+.locked { opacity: 0.75; border-style: dashed; }
+
+/* ---------- Missions screen ---------- */
+#missions {
+  justify-content: flex-start; gap: 16px;
+  overflow-y: auto; touch-action: pan-y;   /* scrolls if it doesn't fit */
+}
+.screen-head { display: flex; justify-content: space-between; align-items: center; }
+.mission-group { display: flex; flex-direction: column; gap: 8px; }
+.group-head { display: flex; justify-content: space-between; align-items: baseline; }
+#missions h2 { margin-top: 0; }
+.reset-time { font-size: 12px; color: var(--muted); }
+.mission-list { display: flex; flex-direction: column; gap: 8px; }
+
+.mission {
+  background: var(--surface); border: 2px solid var(--border); border-radius: 12px;
+  padding: 12px; text-align: left;
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; align-items: center;
+}
+.mission.done { border-color: var(--celadon); }
+.mission.claimed { opacity: 0.55; }
+.mission-text { font-weight: bold; }
+.mission-progress { grid-column: 1; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.bar { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--celadon); border-radius: 4px; transition: width 300ms ease; }
+.mission-side { grid-column: 2; grid-row: 1 / span 2; }
+.reward { font-weight: bold; color: var(--muted); }
+.claim-btn { padding: 10px 14px; }
+
+/* ---------- Popup ---------- */
+.modal {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(0, 0, 0, 0.65);           /* darker backdrop so the popup stands out */
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: fade-in 200ms ease;
+}
+.modal-box {
+  background: var(--surface); color: var(--text);
+  border: 2px solid var(--accent);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  border-radius: 16px; padding: 24px;
+  animation: popup-in 220ms cubic-bezier(0.25, 0.8, 0.35, 1);
+  width: 100%; max-width: 340px; text-align: center;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.modal-icon { font-size: 48px; }
+.modal-buttons { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+.modal-buttons .btn { flex: 1; }
+
+/* ---------- Many modes: compact menu that can scroll ---------- */
+#menu {
+  justify-content: safe center;      /* centered, but never cut off at the top */
+  gap: 16px;
+  overflow-y: auto; touch-action: pan-y;
+  padding-top: 40px;                 /* room for the diamond chip */
+}
+#menu .logo { font-size: 56px; }
+#menu-modes .option { padding: 10px 6px; font-size: 14px; }
+#drawer-modes { display: grid; grid-template-columns: 1fr 1fr; }
+#drawer-modes .drawer-option { padding: 10px; font-size: 14px; }
+#drawer-modes .drawer-option small { display: block; margin: 2px 0 0; }
+
+@keyframes popup-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-box h2 { font-size: 24px; }
+
+/* mission difficulty tags */
+.level {
+  display: inline-block; vertical-align: 2px;
+  font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 8px; border-radius: 999px; margin-right: 4px;
+}
+.level-easy   { background: var(--celadon);    color: #2F4A33; }
+.level-normal { background: var(--cool-steel); color: #FFFFFF; }
+.level-hard   { background: #D9677A;           color: #FFFFFF; }
